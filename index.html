@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>北欧极简思绪记录</title>
+    <title>思绪记录</title>
     <!-- 引入 Tailwind CSS CDN --><script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 自定义 Tailwind 配置，定义北欧风格配色和字体 */
@@ -58,10 +58,10 @@
             display: block;
         }
 
-        /* 修正白色背景头像的 SVG 颜色 */
-        .avatar-option[data-id="fox"] { color: var(--color-text-dark); } 
+        /* 为浅色背景头像设置深色SVG */
         /* 根据新的头像颜色调整，可能需要为其他浅色背景头像设置深色SVG */
-        .avatar-option[data-id="swan"] { color: var(--color-text-dark); } 
+        .avatar-option[data-id="robin"] { color: var(--color-text-dark); } /* 燕雀 */
+        .avatar-option[data-id="swallow"] { color: var(--color-text-dark); } /* 燕子 */
     </style>
 </head>
 <body class="p-4 sm:p-8 flex justify-center">
@@ -92,7 +92,7 @@
 
     <!-- Avatar Selection Modal (头像选择模态框) --><div id="avatar-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-300">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm">
-            <h3 class="text-xl font-medium mb-6 text-gray-700">选择你的卡通身份</h3>
+            <h3 class="text-xl font-medium mb-6 text-gray-700">选择你的像素鸟</h3>
             <div id="avatar-options-grid" class="grid grid-cols-4 gap-4">
                 <!-- 头像选项将由 JS 渲染到此处 --></div>
             <button onclick="hideAvatarModal()" class="mt-8 w-full px-6 py-3 rounded-lg text-white font-medium transition duration-200 ease-in-out hover:opacity-90 shadow-md" style="background-color: var(--color-accent);">
@@ -105,7 +105,7 @@
     <!-- 主内容区域 - 默认隐藏，口令正确后显示 --><div id="main-content" class="hidden w-full max-w-4xl">
         <!-- Header: 标题和描述 --><header class="text-center py-10 sm:py-16">
             <h1 class="4xl sm:text-5xl font-light text-gray-700 tracking-wider">
-                想法集 
+                思绪集 
             </h1>
             <!-- 已移除副标题 --></header>
 
@@ -194,24 +194,24 @@
         // 默认标签列表
         const DEFAULT_TAGS = ["灵感", "工作", "思考", "待办", "学习"]; 
 
-        // 头像选项 - 卡通风格的北欧动物，使用嵌入式 SVG
+        // 头像选项 - 像素风格的鸟类，使用嵌入式 SVG
         const AVATAR_OPTIONS = [
-            // 卡通狐狸 (Fox)
-            { id: 'fox', name: '狐狸', color: '#EBCB8B', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2.5 5.5l-2 4h4.5l-2 4h4.5l-2-4h4.5l-2-4h4.5l-2 4z"/></svg>' },
-            // 卡通熊 (Bear)
-            { id: 'bear', name: '棕熊', color: '#B48EAD', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-3.31 0-6-2.69-6-6h12c0 3.31-2.69 6-6 6zm-2-10h-2V7h2v3zm4 0h-2V7h2v3z"/></svg>' },
-            // 卡通麋鹿 (Moose)
-            { id: 'moose', name: '麋鹿', color: '#D08770', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 4v2h2v-2H8zm8 0v2h-2v-2h2zm-4 8c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
-            // 卡通鲸鱼 (Whale)
-            { id: 'whale', name: '鲸鱼', color: '#5E81AC', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>' },
-            // 卡通猫头鹰 (Owl)
-            { id: 'owl', name: '猫头鹰', color: '#8FBCBB', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 7h2v2H8V9zm8 0h-2v2h2V9zm-4 6c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
-            // 卡通狼 (Wolf)
-            { id: 'wolf', name: '野狼', color: '#A3BE8C', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2.5 5.5L8 10l4.5 2 2-4L12 7.5l-2.5 0z"/></svg>' },
-            // 卡通兔子 (Rabbit)
-            { id: 'rabbit', name: '兔子', color: '#BF616A', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 4v2h2V6H8zm8 0v2h-2V6h2zm-4 10c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
-            // 卡通天鹅 (Swan)
-            { id: 'swan', name: '天鹅', color: '#ECEFF4', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>' },
+            // 像素知更鸟 (Robin)
+            { id: 'robin', name: '知更鸟', color: '#EBCB8B', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素蓝鸟 (Bluebird)
+            { id: 'bluebird', name: '蓝鸟', color: '#81A1C1', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素红雀 (Cardinal)
+            { id: 'cardinal', name: '红雀', color: '#BF616A', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素乌鸦 (Crow)
+            { id: 'crow', name: '乌鸦', color: '#4C566A', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素燕雀 (Finch)
+            { id: 'finch', name: '燕雀', color: '#A3BE8C', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素猫头鹰 (Owl) - 沿用之前的一个像素猫头鹰
+            { id: 'owl', name: '猫头鹰', color: '#D08770', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="10" height="2"/><rect x="2" y="4" width="12" height="8"/><rect x="5" y="6" width="2" height="2"/><rect x="9" y="6" width="2" height="2"/><rect x="7" y="9" width="2" height="1"/></svg>' },
+            // 像素鹦鹉 (Parrot)
+            { id: 'parrot', name: '鹦鹉', color: '#B48EAD', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
+            // 像素燕子 (Swallow)
+            { id: 'swallow', name: '燕子', color: '#ECEFF4', svg: '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="2" width="2" height="2"/><rect x="8" y="3" width="2" height="2"/><rect x="5" y="4" width="6" height="4"/><rect x="4" y="8" width="8" height="3"/><rect x="5" y="11" width="2" height="2"/><rect x="9" y="11" width="2" height="2"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/></svg>' },
         ];
 
         let selectedAvatarId = AVATAR_OPTIONS[0].id; // 默认选中第一个
@@ -247,7 +247,7 @@
             currentAvatarEl.innerHTML = avatar.svg;
             
             // 针对特定颜色背景设置 SVG 颜色（使用 CSS 变量）
-            if (avatar.id === 'fox' || avatar.id === 'swan') { // 这些背景较亮，SVG用深色
+            if (avatar.id === 'robin' || avatar.id === 'swallow') { // 这些背景较亮，SVG用深色
                 currentAvatarEl.style.color = 'var(--color-text-dark)';
             } else { // 其它背景较深，SVG用浅色
                 currentAvatarEl.style.color = 'var(--color-text-light)';
@@ -262,7 +262,7 @@
                 const isSelected = avatar.id === selectedAvatarId;
                 
                 // 针对特定颜色背景设置 SVG 颜色
-                const svgColorStyle = (avatar.id === 'fox' || avatar.id === 'swan') ? 'color: var(--color-text-dark);' : 'color: var(--color-text-light);';
+                const svgColorStyle = (avatar.id === 'robin' || avatar.id === 'swallow') ? 'color: var(--color-text-dark);' : 'color: var(--color-text-light);';
                 const ringClass = isSelected ? 'selected' : '';
 
                 return `
@@ -377,4 +377,268 @@
             const avatar = getAvatarById(thought.avatarId);
 
             // 针对特定颜色背景设置 SVG 颜色
-            const svgColorStyle = (avatar.id ===
+            const svgColorStyle = (avatar.id === 'robin' || avatar.id === 'swallow') ? 'color: var(--color-text-dark);' : 'color: var(--color-text-light);';
+
+            // 渲染标签元素
+            const tagElements = (thought.tags || [])
+                // 想法卡片内的标签样式保持简约
+                .map(tag => `<span onclick="filterThoughts('${tag.replace(/'/g, "\\'")}')" class="cursor-pointer px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition">#${tag}</span>`)
+                .join('');
+
+            return `
+                <div id="card-${thought.id}" class="thought-card bg-white p-6 rounded-lg shadow-sm border-l-4 border-gray-300 transition duration-150 ease-in-out hover:shadow-md" style="border-left-color: var(--color-accent);">
+                    <div class="flex items-start space-x-4">
+                        <!-- Avatar Display --><div 
+                            class="avatar-svg flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center p-1" 
+                            style="background-color: ${avatar.color}; ${svgColorStyle}"
+                            title="${avatar.name}"
+                        >
+                            ${avatar.svg}
+                        </div>
+                        
+                        <!-- Thought Content --><div class="flex-grow text-base whitespace-pre-wrap">${thought.text}</div>
+                    </div>
+
+                    <!-- 标签区块 --><div class="flex flex-wrap gap-2 mt-3 mb-4 pl-12">
+                        ${tagElements}
+                    </div>
+
+                    <div class="mt-4 flex justify-between items-center border-t pt-3" style="border-color: var(--color-border);">
+                        <span class="text-xs text-gray-500">${date}</span>
+                        <button 
+                            onclick="deleteThought('${thought.id}')"
+                            class="text-red-400 hover:text-red-600 transition duration-150 text-sm font-medium"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block align-text-bottom" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * 渲染标签云 (Tag Cloud)
+         */
+        function renderTagCloud(allThoughts) {
+            const tagCounts = {};
+            
+            // 1. Count user-defined tags
+            allThoughts.forEach(thought => {
+                // 确保 tags 属性存在且是数组
+                const tags = Array.isArray(thought.tags) ? thought.tags : [];
+                tags.forEach(tag => {
+                    if (typeof tag === 'string' && tag.trim()) {
+                        const t = tag.trim();
+                        tagCounts[t] = (tagCounts[t] || 0) + 1;
+                    }
+                });
+            });
+
+            // 2. 确保所有默认标签都存在于 tagCounts 中 (即使数量为 0)
+            DEFAULT_TAGS.forEach(defaultTag => {
+                if (!(defaultTag in tagCounts)) {
+                    tagCounts[defaultTag] = 0;
+                }
+            });
+
+            tagCloudEl.innerHTML = '';
+            const allCount = allThoughts.length;
+
+            // 样式定义
+            const INACTIVE_TAG_CLASSES = 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200';
+            const ACTIVE_TAG_CLASSES = 'text-white shadow-lg transform scale-[1.02]'; 
+
+            // '全部' 按钮
+            const allButton = document.createElement('button');
+            allButton.onclick = () => filterThoughts(null);
+            const allIsActive = currentFilterTag === null;
+            allButton.className = `px-4 py-1.5 text-sm rounded-full transition duration-200 ease-in-out font-medium tracking-wide ${allIsActive ? ACTIVE_TAG_CLASSES : INACTIVE_TAG_CLASSES}`;
+            if (allIsActive) {
+                allButton.style.backgroundColor = 'var(--color-accent)';
+            }
+            allButton.textContent = `全部 (${allCount})`;
+            tagCloudEl.appendChild(allButton);
+
+
+            // 3. 标签按钮排序 (优先数量多的，数量相同则按字母排序)
+            const sortedTags = Object.keys(tagCounts).sort((a, b) => {
+                const countA = tagCounts[a];
+                const countB = tagCounts[b];
+                
+                // 主要排序: 按数量降序
+                if (countA !== countB) {
+                    return countB - countA;
+                }
+                // 次要排序: 按字母升序
+                return a.localeCompare(b, 'zh');
+            });
+
+            sortedTags.forEach(tag => {
+                const count = tagCounts[tag];
+                // 如果计数大于 0，则显示 (数量)；否则只显示标签名称
+                const buttonText = count > 0 ? `${tag} (${count})` : tag;
+                
+                const isActive = currentFilterTag === tag;
+                const tagButton = document.createElement('button');
+                tagButton.onclick = () => filterThoughts(tag);
+                tagButton.className = `px-4 py-1.5 text-sm rounded-full transition duration-200 ease-in-out font-medium tracking-wide ${isActive ? ACTIVE_TAG_CLASSES : INACTIVE_TAG_CLASSES}`;
+                
+                // 使用 style 属性设置强调色，以利用 CSS 变量
+                if (isActive) {
+                    tagButton.style.backgroundColor = 'var(--color-accent)';
+                } else {
+                    // 非活动状态下的悬停效果
+                    tagButton.classList.add('hover:shadow-sm'); 
+                }
+
+                tagButton.textContent = buttonText;
+                tagCloudEl.appendChild(tagButton);
+            });
+        }
+
+        /**
+         * 筛选想法列表
+         */
+        function filterThoughts(tag) {
+            currentFilterTag = tag;
+            const allThoughts = loadThoughts();
+            let thoughtsToRender = allThoughts;
+
+            if (tag) {
+                // 仅筛选包含目标标签的想法
+                thoughtsToRender = allThoughts.filter(thought => 
+                    // 确保 tags 存在且是数组，然后检查是否包含标签
+                    (Array.isArray(thought.tags) && thought.tags.includes(tag))
+                );
+            }
+            
+            // 重新渲染标签云和列表
+            renderTagCloud(allThoughts); 
+            renderThoughtList(thoughtsToRender);
+        }
+
+        /**
+         * 渲染主列表
+         */
+        function renderThoughtList(thoughts) {
+            thoughtsListEl.innerHTML = '';
+            
+            // --- 更新区域标题以显示分类集信息 ---
+            if (currentFilterTag) {
+                thoughtsTitleEl.textContent = `分类集: #${currentFilterTag} (${thoughts.length} 条)`;
+            } else {
+                thoughtsTitleEl.textContent = `全部思绪 (${thoughts.length} 条)`;
+            }
+            // ------------------------------------
+
+            // 新的想法放在最前面
+            const reversedThoughts = [...thoughts].reverse(); 
+            
+            if (reversedThoughts.length === 0) {
+                 thoughtsListEl.innerHTML = `
+                    <div class="p-8 text-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1h-3l-4 4v-4H4a1 1 0 01-1-1V4z" />
+                        </svg>
+                        ${currentFilterTag ? `没有找到带有 #${currentFilterTag} 标签的思绪。` : '还没有任何思绪。开始记录吧!'}
+                    </div>
+                `; 
+            } else {
+                thoughtsListEl.innerHTML = reversedThoughts.map(createThoughtCard).join('');
+            }
+        }
+        
+        /**
+         * 添加新的想法
+         */
+        function addThought() {
+            const text = thoughtInputEl.value.trim();
+            if (!text) {
+                // 使用自定义模态框或简单地返回，不要使用 alert()
+                console.warn("想法内容不能为空。"); 
+                return;
+            }
+
+            const tagsText = tagInputEl.value.trim();
+            const tags = tagsText ? tagsText.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            
+            const newThought = {
+                id: Date.now().toString(), // 简单ID
+                text: text,
+                tags: tags,
+                timestamp: Date.now(),
+                avatarId: selectedAvatarId // 使用当前选中的头像 ID
+            };
+
+            const thoughts = loadThoughts();
+            thoughts.push(newThought);
+            saveThoughts(thoughts);
+
+            // 清空输入框
+            thoughtInputEl.value = '';
+            tagInputEl.value = '';
+
+            // 重新渲染，保持当前筛选状态
+            renderThoughts();
+        }
+
+        /**
+         * 删除想法
+         */
+        function deleteThought(id) {
+            // 在实际应用中，这里应该有一个确认对话框
+            const thoughts = loadThoughts();
+            const filteredThoughts = thoughts.filter(t => t.id !== id);
+            saveThoughts(filteredThoughts);
+            
+            // 重新渲染，保持当前筛选状态
+            renderThoughts();
+        }
+
+        /**
+         * 主渲染函数：加载数据并根据当前筛选状态渲染列表和标签云
+         */
+        function renderThoughts() {
+            const allThoughts = loadThoughts();
+            let thoughtsToRender = allThoughts;
+
+            // 根据当前筛选标签过滤
+            if (currentFilterTag) {
+                thoughtsToRender = allThoughts.filter(thought => 
+                    (Array.isArray(thought.tags) && thought.tags.includes(currentFilterTag))
+                );
+            }
+
+            // 1. 渲染标签云 (需要所有想法来计算计数)
+            renderTagCloud(allThoughts);
+
+            // 2. 渲染想法列表 (渲染过滤后的列表)
+            renderThoughtList(thoughtsToRender);
+        }
+
+        /**
+         * 初始化函数 (在页面加载后执行)
+         */
+        function init() {
+            // 填充默认标签到 datalist
+            populateDefaultTags();
+            
+            // 页面加载后等待用户输入口令，不需要在此处调用 renderThoughts
+        }
+
+        // 绑定 Enter 键事件到输入框 (可选，但常用)
+        thoughtInputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // 阻止默认换行行为
+                addThought();
+            }
+        });
+
+        // 页面加载后启动初始化
+        init();
+    </script>
+</body>
+</html>
