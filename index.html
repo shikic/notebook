@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北欧极简思绪记录</title>
+    <!-- 引入 Tailwind CSS CDN --><script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义 Tailwind 配置，定义北欧风格配色和字体 */
+        :root {
+            /* 浅色、中性、柔和 */
+            --color-light-bg: #f7f9fa;
+            --color-primary-text: #334155;
+            --color-accent: #81A1C1; /* 柔和的北欧蓝/灰蓝 */
+            --color-card-bg: #ffffff;
+            --color-border: #e2e8f0;
+            --color-text-light: #f7f9fa; /* 用于深色背景上的文字/SVG */
+            --color-text-dark: #334155; /* 用于浅色背景上的文字/SVG */
+        }
+
+        /* 使用 Inter 字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-light-bg);
+            color: var(--color-primary-text);
+            min-height: 100vh;
+        }
+
+        /* 覆盖默认按钮焦点样式 */
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(129, 161, 193, 0.5); /* 柔和的蓝色焦点环 */
+        }
+
+        /* 自定义头像样式 */
+        .avatar-option {
+            width: 48px; /* 稍大一点方便点击 */
+            height: 48px;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+            color: var(--color-text-light); /* SVG 颜色默认为浅色 */
+            padding: 8px; /* 增加内边距让 SVG 居中 */
+        }
+        .avatar-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(129, 161, 193, 0.5);
+        }
+        .avatar-option.selected {
+            box-shadow: 0 0 0 3px var(--color-accent);
+        }
+
+        /* 确保 SVG 在容器内填满并居中 */
+        .avatar-svg svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* 修正白色背景头像的 SVG 颜色 */
+        .avatar-option[data-id="fox"] { color: var(--color-text-dark); } 
+        /* 根据新的头像颜色调整，可能需要为其他浅色背景头像设置深色SVG */
+        .avatar-option[data-id="swan"] { color: var(--color-text-dark); } 
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex justify-center">
+
+    <!-- 
+        口令保护层 (Passcode Overlay) - 默认显示 
+        正确的口令是: 9793
+    --><div id="passcode-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 transition-opacity duration-300">
+        <div class="bg-white p-8 sm:p-10 rounded-xl shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-light mb-6 text-gray-700">请输入口令</h2>
+            <input
+                type="password"
+                id="passcode-input"
+                placeholder="在此输入口令"
+                class="w-full p-3 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out"
+                onkeypress="if(event.key === 'Enter') checkPasscode()"
+            >
+            <p id="passcode-error" class="text-red-500 text-sm mt-2 opacity-0 transition duration-300">口令错误，请重试。</p>
+            <button
+                onclick="checkPasscode()"
+                class="mt-6 w-full px-6 py-3 rounded-lg text-white font-medium transition duration-200 ease-in-out hover:opacity-90 shadow-md"
+                style="background-color: var(--color-accent);"
+            >
+                进入想法集
+            </button>
+            <!-- 提示已移除 --></div>
+    </div>
+
+    <!-- Avatar Selection Modal (头像选择模态框) --><div id="avatar-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-300">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm">
+            <h3 class="text-xl font-medium mb-6 text-gray-700">选择你的卡通身份</h3>
+            <div id="avatar-options-grid" class="grid grid-cols-4 gap-4">
+                <!-- 头像选项将由 JS 渲染到此处 --></div>
+            <button onclick="hideAvatarModal()" class="mt-8 w-full px-6 py-3 rounded-lg text-white font-medium transition duration-200 ease-in-out hover:opacity-90 shadow-md" style="background-color: var(--color-accent);">
+                确定
+            </button>
+        </div>
+    </div>
+
+
+    <!-- 主内容区域 - 默认隐藏，口令正确后显示 --><div id="main-content" class="hidden w-full max-w-4xl">
+        <!-- Header: 标题和描述 --><header class="text-center py-10 sm:py-16">
+            <h1 class="4xl sm:text-5xl font-light text-gray-700 tracking-wider">
+                想法集 
+            </h1>
+            <!-- 已移除副标题 --></header>
+
+        <!-- Input Section: 想法输入区域 --><section id="input-section" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 mb-10">
+            <!-- Avatar Selection Section --><div id="avatar-selection-section" class="flex items-center space-x-4 mb-6 p-2 border-b border-gray-100">
+                <h2 class="text-lg font-medium text-gray-700">当前记录人：</h2>
+                <div 
+                    id="current-avatar" 
+                    class="avatar-svg w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-semibold cursor-pointer ring-2 ring-offset-2 hover:ring-blue-400 transition p-2" 
+                    onclick="showAvatarModal()"
+                    title="点击更改头像"
+                    style="color: var(--color-text-light);"
+                >
+                    <!-- Avatar SVG will be inserted here --></div>
+            </div>
+
+            <h2 class="text-xl font-medium mb-4">记录新的想法</h2>
+            <textarea
+                id="thought-input"
+                placeholder="在此处写下您的想法，保持简洁..."
+                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out"
+                rows="4"
+            ></textarea>
+            
+            <!-- NEW TAG INPUT: 标签输入框 (连接到 datalist) --><input
+                type="text"
+                id="tag-input"
+                placeholder="添加标签 (例如: 灵感, 工作, 思考，用逗号分隔)"
+                class="w-full p-3 mt-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out"
+                list="default-tags"
+            >
+            <!-- DATALIST: 默认标签建议列表 --><datalist id="default-tags">
+                <!-- 由 JS 填充 --></datalist>
+
+            <button
+                id="add-button"
+                onclick="addThought()"
+                class="mt-4 px-6 py-2 rounded-lg text-white font-medium transition duration-200 ease-in-out hover:opacity-90 shadow-md"
+                style="background-color: var(--color-accent);"
+            >
+                添加记录
+            </button>
+        </section>
+
+        <!-- Tag Filter Section: 标签筛选区域 --><section class="mb-8">
+            <h2 class="text-xl font-medium mb-3">标签筛选</h2>
+            <div id="tag-cloud" class="flex flex-wrap gap-2">
+                <!-- 标签云将由 JavaScript 渲染到此处 --></div>
+        </section>
+
+        <!-- Thoughts Display Section: 已记录想法列表 --><section>
+            <!-- NEW ID: thoughts-title 用于动态显示分类 --><h2 id="thoughts-title" class="text-2xl font-medium mb-6">已保存的思绪</h2>
+            <div id="thoughts-list" class="space-y-4">
+                <!-- 想法将由 JavaScript 渲染到此处 --></div>
+        </section>
+    </div>
+
+    <script>
+        // JavaScript 核心逻辑
+        const STORAGE_KEY = 'nordic_thoughts_journal_v2';
+        const AVATAR_KEY = 'nordic_user_avatar_id';
+
+        const thoughtsListEl = document.getElementById('thoughts-list');
+        const thoughtInputEl = document.getElementById('thought-input');
+        const tagInputEl = document.getElementById('tag-input');
+        const tagCloudEl = document.getElementById('tag-cloud');
+        const thoughtsTitleEl = document.getElementById('thoughts-title'); 
+        const defaultTagsDatalistEl = document.getElementById('default-tags');
+        
+        // Avatar elements
+        const currentAvatarEl = document.getElementById('current-avatar');
+        const avatarModalEl = document.getElementById('avatar-modal');
+        const avatarOptionsGridEl = document.getElementById('avatar-options-grid');
+        
+        // Passcode elements
+        const passcodeOverlayEl = document.getElementById('passcode-overlay');
+        const mainContentEl = document.getElementById('main-content');
+        const passcodeErrorEl = document.getElementById('passcode-error');
+        const passcodeInputEl = document.getElementById('passcode-input');
+        
+        // 硬编码口令 (已更新为 9793)
+        const CORRECT_PASSCODE = '9793'; 
+        
+        let currentFilterTag = null; // 追踪当前的筛选标签
+        
+        // 默认标签列表
+        const DEFAULT_TAGS = ["灵感", "工作", "思考", "待办", "学习"]; 
+
+        // 头像选项 - 卡通风格的北欧动物，使用嵌入式 SVG
+        const AVATAR_OPTIONS = [
+            // 卡通狐狸 (Fox)
+            { id: 'fox', name: '狐狸', color: '#EBCB8B', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2.5 5.5l-2 4h4.5l-2 4h4.5l-2-4h4.5l-2-4h4.5l-2 4z"/></svg>' },
+            // 卡通熊 (Bear)
+            { id: 'bear', name: '棕熊', color: '#B48EAD', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-3.31 0-6-2.69-6-6h12c0 3.31-2.69 6-6 6zm-2-10h-2V7h2v3zm4 0h-2V7h2v3z"/></svg>' },
+            // 卡通麋鹿 (Moose)
+            { id: 'moose', name: '麋鹿', color: '#D08770', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 4v2h2v-2H8zm8 0v2h-2v-2h2zm-4 8c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
+            // 卡通鲸鱼 (Whale)
+            { id: 'whale', name: '鲸鱼', color: '#5E81AC', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>' },
+            // 卡通猫头鹰 (Owl)
+            { id: 'owl', name: '猫头鹰', color: '#8FBCBB', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 7h2v2H8V9zm8 0h-2v2h2V9zm-4 6c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
+            // 卡通狼 (Wolf)
+            { id: 'wolf', name: '野狼', color: '#A3BE8C', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2.5 5.5L8 10l4.5 2 2-4L12 7.5l-2.5 0z"/></svg>' },
+            // 卡通兔子 (Rabbit)
+            { id: 'rabbit', name: '兔子', color: '#BF616A', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4 4v2h2V6H8zm8 0v2h-2V6h2zm-4 10c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2z"/></svg>' },
+            // 卡通天鹅 (Swan)
+            { id: 'swan', name: '天鹅', color: '#ECEFF4', svg: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>' },
+        ];
+
+        let selectedAvatarId = AVATAR_OPTIONS[0].id; // 默认选中第一个
+        
+        /**
+         * 辅助函数：通过 ID 查找头像对象
+         */
+        function getAvatarById(id) {
+            return AVATAR_OPTIONS.find(a => a.id === id) || AVATAR_OPTIONS[0];
+        }
+
+        /**
+         * 初始化并渲染当前选中的头像
+         */
+        function initAvatar() {
+            // 从 localStorage 加载上次选中的头像 ID
+            const storedId = localStorage.getItem(AVATAR_KEY);
+            if (storedId && getAvatarById(storedId)) {
+                selectedAvatarId = storedId;
+            } else {
+                // 如果没有存储或存储无效，使用默认值并保存
+                localStorage.setItem(AVATAR_KEY, selectedAvatarId);
+            }
+            renderCurrentAvatar();
+        }
+
+        /**
+         * 渲染当前头像到主页面的显示区域
+         */
+        function renderCurrentAvatar() {
+            const avatar = getAvatarById(selectedAvatarId);
+            currentAvatarEl.style.backgroundColor = avatar.color;
+            currentAvatarEl.innerHTML = avatar.svg;
+            
+            // 针对特定颜色背景设置 SVG 颜色（使用 CSS 变量）
+            if (avatar.id === 'fox' || avatar.id === 'swan') { // 这些背景较亮，SVG用深色
+                currentAvatarEl.style.color = 'var(--color-text-dark)';
+            } else { // 其它背景较深，SVG用浅色
+                currentAvatarEl.style.color = 'var(--color-text-light)';
+            }
+        }
+
+        /**
+         * 渲染模态框中的头像选项
+         */
+        function renderAvatarOptions() {
+            avatarOptionsGridEl.innerHTML = AVATAR_OPTIONS.map(avatar => {
+                const isSelected = avatar.id === selectedAvatarId;
+                
+                // 针对特定颜色背景设置 SVG 颜色
+                const svgColorStyle = (avatar.id === 'fox' || avatar.id === 'swan') ? 'color: var(--color-text-dark);' : 'color: var(--color-text-light);';
+                const ringClass = isSelected ? 'selected' : '';
+
+                return `
+                    <div 
+                        class="avatar-option avatar-svg rounded-full flex items-center justify-center ${ringClass}" 
+                        style="background-color: ${avatar.color}; ${svgColorStyle}"
+                        data-id="${avatar.id}"
+                        onclick="selectAvatar('${avatar.id}')"
+                        title="${avatar.name}"
+                    >
+                        ${avatar.svg}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * 选择并保存新头像
+         */
+        function selectAvatar(id) {
+            selectedAvatarId = id;
+            localStorage.setItem(AVATAR_KEY, id);
+            renderCurrentAvatar();
+            renderAvatarOptions(); // 重新渲染模态框以更新选中状态
+        }
+
+        /**
+         * 显示头像选择模态框
+         */
+        function showAvatarModal() {
+            renderAvatarOptions();
+            avatarModalEl.classList.remove('hidden');
+        }
+
+        /**
+         * 隐藏头像选择模态框
+         */
+        function hideAvatarModal() {
+            avatarModalEl.classList.add('hidden');
+        }
+
+
+        /**
+         * 填充默认标签到 datalist
+         */
+        function populateDefaultTags() {
+            defaultTagsDatalistEl.innerHTML = DEFAULT_TAGS
+                .map(tag => `<option value="${tag}">`)
+                .join('');
+        }
+
+        /**
+         * 检查口令并解锁内容
+         */
+        function checkPasscode() {
+            const enteredPasscode = passcodeInputEl.value.trim();
+            if (enteredPasscode === CORRECT_PASSCODE) {
+                // 正确口令：隐藏覆盖层，显示主内容
+                passcodeOverlayEl.style.opacity = '0';
+                setTimeout(() => {
+                    passcodeOverlayEl.classList.add('hidden');
+                    mainContentEl.classList.remove('hidden');
+                    // 渲染内容
+                    initAvatar(); // 初始化头像
+                    renderThoughts();
+                }, 300); // 匹配 CSS 过渡时间
+            } else {
+                // 错误口令：显示错误信息
+                passcodeErrorEl.classList.remove('opacity-0');
+                setTimeout(() => {
+                    passcodeErrorEl.classList.add('opacity-0');
+                }, 2000);
+            }
+        }
+        
+        /**
+         * 加载想法列表 (从 localStorage)
+         */
+        function loadThoughts() {
+            try {
+                const json = localStorage.getItem(STORAGE_KEY);
+                // 确保返回数组，并在需要时处理旧数据格式
+                const data = json ? JSON.parse(json) : [];
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                console.error("加载想法失败:", e);
+                return [];
+            }
+        }
+
+        /**
+         * 保存想法列表 (到 localStorage)
+         */
+        function saveThoughts(thoughts) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(thoughts));
+            } catch (e) {
+                console.error("保存想法失败:", e);
+            }
+        }
+
+        /**
+         * 渲染单个想法卡片
+         */
+        function createThoughtCard(thought) {
+            const date = new Date(thought.timestamp).toLocaleString('zh-CN', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            // 获取想法关联的头像
+            const avatar = getAvatarById(thought.avatarId);
+
+            // 针对特定颜色背景设置 SVG 颜色
+            const svgColorStyle = (avatar.id ===
